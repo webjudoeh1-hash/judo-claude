@@ -6,15 +6,14 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --border: 220 13% 91%; /* gris suave para bordes */
   }
 
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50 text-foreground;
   }
 }
 
