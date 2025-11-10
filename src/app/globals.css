@@ -6,12 +6,15 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    --border: 220 13% 91%; /* gris suave para bordes */
   }
 
+  * {
+    @apply border-border;
+  }
 
-  
   body {
-    @apply bg-gray-50 text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -39,5 +42,4 @@
   .label {
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
-
 }
