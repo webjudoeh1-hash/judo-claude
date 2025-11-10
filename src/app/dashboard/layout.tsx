@@ -9,19 +9,20 @@ export default async function DashboardLayout({
 }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
   
-  if (!user) {
+  if (!user || userError) {
     redirect('/login')
   }
 
-  const { data: perfil } = await supabase
+  const { data: perfil, error: perfilError } = await supabase
     .from('perfiles')
-    .select('*')
+    .select('*, grupos(*)')
     .eq('id', user.id)
     .single()
 
-  if (!perfil) {
+  if (!perfil || perfilError) {
+    // Si no hay perfil, redirigir al login
     redirect('/login')
   }
 
