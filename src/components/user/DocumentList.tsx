@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Documento } from '@/types/database.types'
-import { formatDate, formatBytes, isImageFile } from '@/lib/utils'
-import { Download, FileText, Image as ImageIcon, Filter } from 'lucide-react'
+import { formatDate, formatBytes } from '@/lib/utils'
+import { Download, FileText, Image as ImageIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface DocumentListProps {
@@ -23,24 +23,36 @@ export default function DocumentList({ documentos }: DocumentListProps) {
     return typeMatch && groupMatch
   })
 
-  const grupos = Array.from(
-    new Set(documentos.map((d) => d.grupos?.nombre).filter(Boolean))
-  )
+  // Obtener lista única de grupos
+  const gruposSet = new Set<string>()
+  documentos.forEach((d) => {
+    if (d.grupos?.nombre) {
+      gruposSet.add(d.grupos.nombre)
+    }
+  })
+  const grupos = Array.from(gruposSet)
 
   const handleDownload = async (doc: any) => {
-    const { data } = await supabase.storage
-      .from('documentos-judo')
-      .download(doc.url)
+    try {
+      const { data, error } = await supabase.storage
+        .from('documentos-judo')
+        .download(doc.url)
 
-    if (data) {
-      const url = URL.createObjectURL(data)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = doc.nombre_archivo
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      if (error) throw error
+
+      if (data) {
+        const url = URL.createObjectURL(data)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = doc.nombre_archivo
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('Error al descargar:', error)
+      alert('Error al descargar el archivo')
     }
   }
 
