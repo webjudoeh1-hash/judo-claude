@@ -1,9 +1,3 @@
-import { type ClassValue, clsx } from 'clsx'
-
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs)
-}
-
 export function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return '0 Bytes'
 
@@ -26,9 +20,4 @@ export function formatDate(date: string) {
 
 export function getFileExtension(filename: string) {
   return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2)
-}
-
-export function isImageFile(filename: string) {
-  const ext = getFileExtension(filename).toLowerCase()
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)
 }
