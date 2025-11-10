@@ -1,25 +1,27 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
 import { createServerClient } from '@supabase/ssr'
 import { Database } from '@/types/database.types'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Permitir acceso libre a archivos estáticos y API
+  // Permitir acceso libre a archivos estáticos, API y rutas públicas
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.')
+    pathname === '/favicon.ico' ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico)$/)
   ) {
     return NextResponse.next()
   }
 
-  // Actualizar sesión
-  let response = await updateSession(request)
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  // Crear cliente de Supabase para verificar autenticación
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -29,7 +31,12 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({
+            request,
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
@@ -38,29 +45,31 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Verificar autenticación
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Si no hay usuario y no está en login, redirigir a login
-  if (!user && pathname !== '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Ruta de login
+  if (pathname === '/login') {
+    if (user) {
+      // Si está autenticado y accede a login, redirigir a dashboard
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return response
   }
 
-  // Si hay usuario y está en login, redirigir a dashboard
-  if (user && pathname === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  // Ruta raíz
+  if (pathname === '/') {
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Si hay usuario y está en la raíz, redirigir a dashboard
-  if (user && pathname === '/') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  // Rutas protegidas (todo lo demás)
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return response
@@ -68,6 +77,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
