@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import DashboardNav from '@/components/DashboardNav'
 
 export default async function DashboardLayout({
@@ -9,21 +8,20 @@ export default async function DashboardLayout({
 }) {
   const supabase = await createClient()
   
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user || userError) {
-    redirect('/login')
+  if (!user) {
+    return null
   }
 
-  const { data: perfil, error: perfilError } = await supabase
+  const { data: perfil } = await supabase
     .from('perfiles')
     .select('*, grupos(*)')
     .eq('id', user.id)
     .single()
 
-  if (!perfil || perfilError) {
-    // Si no hay perfil, redirigir al login
-    redirect('/login')
+  if (!perfil) {
+    return null
   }
 
   return (
