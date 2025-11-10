@@ -8,9 +8,7 @@
     --foreground: 222.2 84% 4.9%;
   }
 
-  * {
-    @apply border-border;
-  }
+
   
   body {
     @apply bg-gray-50 text-foreground;
@@ -41,4 +39,5 @@
   .label {
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
+
 }
