@@ -8,6 +8,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Variables CSS mapeadas como colores de Tailwind
+        border: 'hsl(var(--border))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        // Tu paleta personalizada
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
