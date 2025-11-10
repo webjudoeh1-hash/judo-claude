@@ -1,24 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import DocumentList from '@/components/user/DocumentList'
-import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user || userError) {
-    redirect('/login')
+  if (!user) {
+    return <div>Cargando...</div>
   }
 
-  const { data: perfil, error: perfilError } = await supabase
+  const { data: perfil } = await supabase
     .from('perfiles')
     .select('*, grupos(*)')
     .eq('id', user.id)
     .single()
 
-  if (!perfil || perfilError) {
-    redirect('/login')
+  if (!perfil) {
+    return <div>Cargando perfil...</div>
   }
 
   let query = supabase
